@@ -1,1 +1,491 @@
-fsfhklsehgjkldrgnkldfn bcf,bnjkdfnhgdh
+import React, { useState, useMemo } from 'react';
+import { 
+  Search, 
+  Plus, 
+  LayoutGrid, 
+  List, 
+  Tag, 
+  Filter, 
+  TrendingUp, 
+  Box, 
+  Heart, 
+  Shirt, 
+  MoreVertical,
+  ChevronRight,
+  Settings,
+  ShieldCheck,
+  Package,
+  Calendar,
+  Sparkles
+} from 'lucide-react';
+
+// 初始分類：甜點與服飾
+const INITIAL_COLLECTIONS = [
+  { id: 1, name: '工藝級甜點典藏', category: '甜點', items: 2, value: 'NT$ 1,500', color: 'bg-pink-400', icon: 'Heart' },
+  { id: 2, name: '質感穿搭衣櫥', category: '服飾', items: 2, value: 'NT$ 8,200', color: 'bg-indigo-500', icon: 'Shirt' },
+];
+
+// 初始商品
+const INITIAL_ITEMS = [
+  { 
+    id: 101, 
+    collectionId: 1, 
+    name: '雲朵朵彩虹棉花糖', 
+    date: '2024-03-12', 
+    price: 'NT$ 150', 
+    rating: 5, 
+    status: '未開封', 
+    tags: ['彩虹', '夢幻甜點'], 
+    // 使用 AI 圖庫，確保 100% 顯示棉花糖圖片
+    image: 'https://image.pollinations.ai/prompt/pink_fluffy_cotton_candy_on_a_stick_dessert?width=400&height=400&nologo=true' 
+  },
+  { 
+    id: 102, 
+    collectionId: 1, 
+    name: '法式玫瑰馬卡龍禮盒', 
+    date: '2024-03-15', 
+    price: 'NT$ 1,350', 
+    rating: 5, 
+    status: '需冷藏', 
+    tags: ['送禮', '法式'], 
+    image: 'https://images.unsplash.com/photo-1569864358642-9d1684040f43?auto=format&fit=crop&q=80&w=400' 
+  },
+  { 
+    id: 201, 
+    collectionId: 2, 
+    name: '復古水洗單寧外套', 
+    date: '2023-11-20', 
+    price: 'NT$ 3,200', 
+    rating: 4, 
+    status: '九成新', 
+    tags: ['古著', '百搭'], 
+    image: 'https://images.unsplash.com/photo-1576871337622-98d48d1cf531?auto=format&fit=crop&q=80&w=400' 
+  },
+  { 
+    id: 202, 
+    collectionId: 2, 
+    name: '亞麻極簡風長洋裝', 
+    date: '2024-01-05', 
+    price: 'NT$ 5,000', 
+    rating: 5, 
+    status: '全新', 
+    tags: ['夏日', '設計師款'], 
+    image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=400' 
+  },
+];
+
+const App = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCollection, setSelectedCollection] = useState(null);
+  const [viewMode, setViewMode] = useState('grid');
+  
+  // 彈出視窗狀態
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAddCollectionModalOpen, setIsAddCollectionModalOpen] = useState(false);
+
+  // 資料狀態
+  const [collections, setCollections] = useState(INITIAL_COLLECTIONS);
+  const [items, setItems] = useState(INITIAL_ITEMS);
+  
+  // 新增分類用表單狀態
+  const [newCollectionName, setNewCollectionName] = useState('');
+  const [newCollectionCategory, setNewCollectionCategory] = useState('');
+
+  // 新增收藏品用表單狀態
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemCollectionId, setNewItemCollectionId] = useState('');
+  const [newItemPrice, setNewItemPrice] = useState('');
+
+  // 過濾邏輯
+  const filteredItems = useMemo(() => {
+    let currentItems = selectedCollection 
+      ? items.filter(item => item.collectionId === selectedCollection.id)
+      : items;
+    
+    if (searchQuery) {
+      currentItems = currentItems.filter(item => 
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    }
+    return currentItems;
+  }, [selectedCollection, searchQuery, items]);
+
+  // 處理新增分類
+  const handleAddCollection = () => {
+    if (!newCollectionName.trim()) return;
+    const newCollection = {
+      id: Date.now(),
+      name: newCollectionName,
+      category: newCollectionCategory || '未分類',
+      items: 0,
+      value: 'NT$ 0',
+      color: ['bg-rose-400', 'bg-blue-400', 'bg-emerald-400', 'bg-amber-400', 'bg-violet-400'][Math.floor(Math.random() * 5)],
+      icon: 'Box'
+    };
+    setCollections([...collections, newCollection]);
+    setIsAddCollectionModalOpen(false);
+    setNewCollectionName('');
+    setNewCollectionCategory('');
+  };
+
+  // 處理新增收藏品
+  const handleAddItem = () => {
+    if (!newItemName.trim()) return;
+
+    const collectionIdNum = newItemCollectionId ? Number(newItemCollectionId) : (collections.length > 0 ? collections[0].id : 999);
+
+    const newItem = {
+      id: Date.now(),
+      collectionId: collectionIdNum, 
+      name: newItemName,
+      date: new Date().toISOString().split('T')[0],
+      price: newItemPrice || 'NT$ 0',
+      rating: 0,
+      status: '剛入庫',
+      tags: ['新加入'],
+      image: 'https://images.unsplash.com/photo-1493612276216-ee3925520721?auto=format&fit=crop&q=80&w=400'
+    };
+
+    setItems([...items, newItem]);
+    setIsAddModalOpen(false);
+    setNewItemName('');
+    setNewItemCollectionId('');
+    setNewItemPrice('');
+  };
+
+  // 側邊欄按鈕
+  const SidebarItem = ({ icon: Icon, label, id, active = false }) => (
+    <button
+      onClick={() => {
+        setActiveTab(id);
+        if (id === 'dashboard') setSelectedCollection(null);
+      }}
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+        active 
+        ? 'bg-rose-500 text-white shadow-lg shadow-rose-200' 
+        : 'text-slate-500 hover:bg-rose-50 hover:text-rose-600'
+      }`}
+    >
+      <Icon size={20} />
+      <span className="font-medium text-sm lg:block hidden">{label}</span>
+    </button>
+  );
+
+  return (
+    <div className="flex min-h-screen bg-[#FFF9F9] text-slate-900 font-sans">
+      {/* 側邊導航欄 */}
+      <aside className="w-20 lg:w-64 border-r border-rose-100 bg-white flex flex-col p-4 sticky top-0 h-screen">
+        <div className="flex items-center gap-3 px-2 mb-10">
+          <div className="w-10 h-10 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl flex items-center justify-center text-white shadow-inner">
+            <Sparkles size={22} />
+          </div>
+          <span className="font-bold text-xl tracking-tight text-rose-950 lg:block hidden">我的專屬選物</span>
+        </div>
+
+        <nav className="flex-1 space-y-2">
+          <SidebarItem icon={LayoutGrid} label="控制面板" id="dashboard" active={activeTab === 'dashboard'} />
+          <SidebarItem icon={Package} label="所有清單" id="collections" active={activeTab === 'collections'} />
+          <SidebarItem icon={Heart} label="心願單" id="wishlist" active={activeTab === 'wishlist'} />
+        </nav>
+      </aside>
+
+      {/* 主要內容區 */}
+      <main className="flex-1 flex flex-col">
+        {/* 頂部搜索列 */}
+        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-rose-100 flex items-center justify-between px-8 sticky top-0 z-10">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-rose-300" size={18} />
+            <input 
+              type="text" 
+              placeholder="搜尋甜點、服飾或標籤..."
+              className="w-full bg-rose-50/50 border border-rose-100 rounded-2xl py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-rose-400/30 transition-all outline-none"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="h-10 w-10 rounded-full bg-rose-100 border-2 border-white shadow-sm overflow-hidden">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mia" alt="User" />
+          </div>
+        </header>
+
+        <div className="p-8 max-w-7xl mx-auto w-full">
+          {/* 控制面板概覽 */}
+          {!selectedCollection && activeTab === 'dashboard' && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="flex items-end justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-rose-950">美好生活收集冊 🌸</h1>
+                  <p className="text-rose-600/70 mt-2">目前您擁有 {collections.length} 個分類，共紀錄了 {items.length} 件美好的事物。</p>
+                </div>
+                <button 
+                  onClick={() => setIsAddCollectionModalOpen(true)}
+                  className="bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-semibold shadow-lg shadow-rose-200 transition-all active:scale-95"
+                >
+                  <Plus size={20} />
+                  <span>建立新分類</span>
+                </button>
+              </div>
+
+              {/* 分類網格 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                {collections.map((col) => (
+                  <div 
+                    key={col.id}
+                    onClick={() => setSelectedCollection(col)}
+                    className="group bg-white rounded-3xl overflow-hidden border border-rose-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer"
+                  >
+                    <div className={`h-24 ${col.color} relative overflow-hidden`}>
+                      <div className="absolute top-0 right-0 p-8 opacity-20 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform">
+                        {col.category === '服飾' ? <Shirt size={80} /> : <Heart size={80} />}
+                      </div>
+                    </div>
+                    <div className="p-6 relative">
+                      <div className="absolute -top-10 left-6 w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center text-rose-500">
+                        <Tag size={28} />
+                      </div>
+                      <div className="mt-4">
+                        <h3 className="font-bold text-lg text-slate-800 group-hover:text-rose-600 transition-colors">{col.name}</h3>
+                        <p className="text-rose-400 text-sm mb-4">{col.category}</p>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-rose-600 bg-rose-50 border border-rose-100 px-3 py-1 rounded-full font-medium">
+                            {items.filter(item => item.collectionId === col.id).length} 件商品
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 特定清單內容區 */}
+          {(selectedCollection || activeTab === 'collections') && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => setSelectedCollection(null)}
+                    className="p-2 hover:bg-rose-100 text-rose-400 rounded-xl transition-colors"
+                  >
+                    <ChevronRight className="rotate-180" size={24} />
+                  </button>
+                  <div>
+                    <h1 className="text-2xl font-bold text-slate-800">{selectedCollection ? selectedCollection.name : '所有項目'}</h1>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 bg-white p-1 rounded-2xl shadow-sm border border-rose-100">
+                  <button 
+                    onClick={() => setViewMode('grid')}
+                    className={`p-2 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-rose-50 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}
+                  >
+                    <LayoutGrid size={20} />
+                  </button>
+                  <button 
+                    onClick={() => setViewMode('list')}
+                    className={`p-2 rounded-xl transition-all ${viewMode === 'list' ? 'bg-rose-50 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}
+                  >
+                    <List size={20} />
+                  </button>
+                </div>
+              </div>
+
+              {/* 商品網格展示 */}
+              {viewMode === 'grid' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {filteredItems.map((item) => (
+                    <div key={item.id} className="bg-white rounded-3xl border border-rose-100 shadow-sm overflow-hidden hover:shadow-xl transition-all group">
+                      <div className="relative h-56 overflow-hidden bg-rose-50">
+                        <img 
+                          src={item.image} 
+                          alt={item.name} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        />
+                        <div className="absolute top-3 right-3">
+                          <button className="bg-white/90 backdrop-blur p-2 rounded-xl shadow-sm text-slate-400 hover:text-rose-500 transition-colors">
+                            <Heart size={18} />
+                          </button>
+                        </div>
+                        <div className="absolute bottom-3 left-3 flex gap-1 flex-wrap">
+                          {item.tags.map((tag, i) => (
+                            <span key={i} className="bg-white/90 backdrop-blur text-rose-600 font-medium text-[10px] px-2.5 py-1 rounded-full shadow-sm">
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="p-5">
+                        <h4 className="font-bold text-slate-800 leading-tight mb-2 truncate">{item.name}</h4>
+                        <div className="flex justify-between items-center pt-3 border-t border-rose-50 mt-3">
+                          <span className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-md">{item.status}</span>
+                          <span className="font-bold text-rose-500">{item.price}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <button 
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="border-2 border-dashed border-rose-200 rounded-3xl flex flex-col items-center justify-center p-8 text-rose-400 hover:border-rose-500 hover:text-rose-500 hover:bg-rose-50 transition-all group min-h-[300px]"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-rose-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Plus size={28} />
+                    </div>
+                    <span className="font-semibold">新增新項目</span>
+                  </button>
+                </div>
+              )}
+
+              {/* 列表展示模式 */}
+              {viewMode === 'list' && (
+                <div className="bg-white rounded-3xl border border-rose-100 overflow-hidden shadow-sm">
+                  <table className="w-full text-left">
+                    <thead className="bg-rose-50 border-b border-rose-100">
+                      <tr>
+                        <th className="px-6 py-4 text-xs font-bold text-rose-400 uppercase">項目名稱</th>
+                        <th className="px-6 py-4 text-xs font-bold text-rose-400 uppercase">標籤</th>
+                        <th className="px-6 py-4 text-xs font-bold text-rose-400 uppercase">狀態</th>
+                        <th className="px-6 py-4 text-xs font-bold text-rose-400 uppercase">價格</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-rose-50">
+                      {filteredItems.map((item) => (
+                        <tr key={item.id} className="hover:bg-rose-50/50 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-4">
+                              <img src={item.image} className="w-12 h-12 rounded-xl object-cover shadow-sm" alt="" />
+                              <span className="font-semibold text-sm text-slate-800">{item.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex gap-1">
+                              {item.tags.slice(0, 2).map((t, i) => <span key={i} className="text-xs bg-white border border-rose-100 text-rose-500 px-2 py-0.5 rounded-md">#{t}</span>)}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-xs font-medium text-slate-500">{item.status}</span>
+                          </td>
+                          <td className="px-6 py-4 font-bold text-sm text-rose-500">{item.price}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* 新增項目 Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm" onClick={() => setIsAddModalOpen(false)}></div>
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-rose-50 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-800">加入新的美好事物 ✨</h2>
+              <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-900">
+                <Plus className="rotate-45" size={24} />
+              </button>
+            </div>
+            <div className="p-8 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">名稱</label>
+                <input 
+                  type="text" 
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  className="w-full bg-rose-50/50 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-400/30" 
+                  placeholder="例如：草莓千層派" 
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">選擇分類</label>
+                  <select 
+                    value={newItemCollectionId}
+                    onChange={(e) => setNewItemCollectionId(e.target.value)}
+                    className="w-full bg-rose-50/50 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-400/30 text-slate-700"
+                  >
+                    <option value="" disabled>請選擇...</option>
+                    {collections.map(col => (
+                      <option key={col.id} value={col.id}>{col.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">價格 / 估值</label>
+                  <input 
+                    type="text" 
+                    value={newItemPrice}
+                    onChange={(e) => setNewItemPrice(e.target.value)}
+                    className="w-full bg-rose-50/50 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-400/30" 
+                    placeholder="NT$" 
+                  />
+                </div>
+              </div>
+              <div className="pt-6 flex gap-3">
+                <button onClick={() => setIsAddModalOpen(false)} className="flex-1 px-6 py-3 border border-rose-200 text-rose-500 rounded-2xl font-semibold hover:bg-rose-50 transition-colors">
+                  取消
+                </button>
+                <button onClick={handleAddItem} className="flex-1 px-6 py-3 bg-rose-500 text-white rounded-2xl font-semibold shadow-lg shadow-rose-200 hover:bg-rose-600 transition-all">
+                  確認儲存
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 新增分類 Modal */}
+      {isAddCollectionModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm" onClick={() => setIsAddCollectionModalOpen(false)}></div>
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-rose-50 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-800">建立新分類資料夾 📁</h2>
+              <button onClick={() => setIsAddCollectionModalOpen(false)} className="text-slate-400 hover:text-slate-900">
+                <Plus className="rotate-45" size={24} />
+              </button>
+            </div>
+            <div className="p-8 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">資料夾名稱</label>
+                <input 
+                  type="text" 
+                  value={newCollectionName}
+                  onChange={(e) => setNewCollectionName(e.target.value)}
+                  className="w-full bg-rose-50/50 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-400/30" 
+                  placeholder="例如：秋冬大衣、法式甜點..." 
+                  autoFocus
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">大分類 (選填)</label>
+                <input 
+                  type="text" 
+                  value={newCollectionCategory}
+                  onChange={(e) => setNewCollectionCategory(e.target.value)}
+                  className="w-full bg-rose-50/50 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-400/30" 
+                  placeholder="例如：甜點、服飾、配件..." 
+                />
+              </div>
+              <div className="pt-6 flex gap-3">
+                <button onClick={() => setIsAddCollectionModalOpen(false)} className="flex-1 px-6 py-3 border border-rose-200 text-rose-500 rounded-2xl font-semibold hover:bg-rose-50 transition-colors">
+                  取消
+                </button>
+                <button onClick={handleAddCollection} className="flex-1 px-6 py-3 bg-rose-500 text-white rounded-2xl font-semibold shadow-lg shadow-rose-200 hover:bg-rose-600 transition-all">
+                  建立資料夾
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;
