@@ -24,91 +24,101 @@
 </head>
 <body class="bg-[#FFF9F9] text-slate-900 font-sans min-h-screen">
 
-  <div id="app-container" class="flex w-full min-h-screen hidden">
-    <!-- ==================== 側邊導航欄 ==================== -->
-    <aside class="w-20 lg:w-64 border-r border-rose-100 bg-white flex flex-col p-4 sticky top-0 h-screen transition-all">
+  <!-- ==================== 讀取中畫面 ==================== -->
+  <div id="loading-overlay" class="fixed inset-0 z-[200] bg-[#FFF9F9] flex flex-col items-center justify-center">
+    <i class="ph ph-spinner animate-spin text-4xl text-rose-500 mb-4"></i>
+    <p class="text-rose-900 font-medium">正在為您準備專屬空間...</p>
+  </div>
+
+  <!-- ==================== APP 主畫面容器 ==================== -->
+  <div id="app-container" class="w-full min-h-screen hidden">
+    
+    <!-- 側邊導航欄 -->
+    <aside class="w-20 lg:w-64 border-r border-rose-100 bg-white flex flex-col p-4 sticky top-0 h-screen transition-all shrink-0">
       <div class="flex items-center gap-3 px-2 mb-10">
-        <i class="ph ph-sparkle text-2xl"></i>
-      </div>
-      <span class="font-bold text-xl tracking-tight text-rose-950 lg:block hidden">我的專屬選物</span>
-    </div>
-
-    <nav class="flex-1 space-y-2">
-      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 bg-rose-500 text-white shadow-lg shadow-rose-200">
-        <i class="ph ph-squares-four text-xl"></i>
-        <span class="font-medium text-sm lg:block hidden">控制面板</span>
-      </button>
-      <button onclick="switchTab('collections')" id="nav-collections" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-slate-500 hover:bg-rose-50 hover:text-rose-600">
-        <i class="ph ph-package text-xl"></i>
-        <span class="font-medium text-sm lg:block hidden">所有清單</span>
-      </button>
-    </nav>
-
-    <div class="mt-auto pt-4 border-t border-rose-50">
-       <button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-slate-500 hover:bg-slate-50 hover:text-rose-600">
-        <i class="ph ph-sign-out text-xl"></i>
-        <span class="font-medium text-sm lg:block hidden">登出</span>
-      </button>
-    </div>
-  </aside>
-
-  <!-- ==================== 主要內容區 ==================== -->
-  <main class="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
-    <!-- 頂部 Header -->
-    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-rose-100 flex items-center justify-between px-8 sticky top-0 z-10">
-      <div class="relative w-full max-w-md">
-        <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-rose-300 text-lg"></i>
-        <input type="text" id="search-input" placeholder="搜尋名稱或標籤..." class="w-full bg-rose-50/50 border border-rose-100 rounded-2xl py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-rose-400/30 transition-all outline-none">
-      </div>
-      <div class="flex items-center gap-3">
-         <span id="user-name-display" class="text-sm font-medium text-slate-600"></span>
-        <div class="h-10 w-10 rounded-full bg-rose-100 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center text-rose-500">
-          <i class="ph ph-user text-xl"></i>
+        <div class="w-10 h-10 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl flex items-center justify-center text-white shadow-inner shrink-0">
+          <i class="ph ph-sparkle text-2xl"></i>
         </div>
+        <span class="font-bold text-xl tracking-tight text-rose-950 lg:block hidden truncate">我的專屬選物</span>
       </div>
-    </header>
 
-    <div class="p-8 max-w-7xl mx-auto w-full pb-24">
-      
-      <!-- 視圖：控制面板 -->
-      <div id="view-dashboard" class="space-y-8 fade-in block">
-        <div class="flex items-end justify-between">
-          <div>
-            <h1 class="text-3xl font-bold text-rose-950">美好生活收集冊 🌸</h1>
-            <p class="text-rose-600/70 mt-2">目前您擁有 <span id="col-count" class="font-bold">0</span> 個分類，共紀錄了 <span id="item-count" class="font-bold">0</span> 件美好的事物。</p>
+      <nav class="flex-1 space-y-2">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 bg-rose-500 text-white shadow-lg shadow-rose-200">
+          <i class="ph ph-squares-four text-xl"></i>
+          <span class="font-medium text-sm lg:block hidden">控制面板</span>
+        </button>
+        <button onclick="switchTab('collections')" id="nav-collections" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-slate-500 hover:bg-rose-50 hover:text-rose-600">
+          <i class="ph ph-package text-xl"></i>
+          <span class="font-medium text-sm lg:block hidden">所有清單</span>
+        </button>
+      </nav>
+
+      <div class="mt-auto pt-4 border-t border-rose-50">
+         <button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-slate-500 hover:bg-slate-50 hover:text-rose-600">
+          <i class="ph ph-sign-out text-xl"></i>
+          <span class="font-medium text-sm lg:block hidden">登出帳號</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- 主要內容區 -->
+    <main class="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
+      <!-- 頂部 Header -->
+      <header class="h-20 bg-white/80 backdrop-blur-md border-b border-rose-100 flex items-center justify-between px-8 sticky top-0 z-10">
+        <div class="relative w-full max-w-md">
+          <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-rose-300 text-lg"></i>
+          <input type="text" id="search-input" placeholder="搜尋名稱或標籤..." class="w-full bg-rose-50/50 border border-rose-100 rounded-2xl py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-rose-400/30 transition-all outline-none">
+        </div>
+        <div class="flex items-center gap-3">
+           <span id="user-name-display" class="text-sm font-medium text-slate-600"></span>
+          <div class="h-10 w-10 rounded-full bg-rose-100 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center text-rose-500 shrink-0">
+            <i class="ph ph-user text-xl"></i>
           </div>
-          <button onclick="openModal('collection-modal')" class="bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-semibold shadow-lg shadow-rose-200 transition-all active:scale-95">
-            <i class="ph ph-plus text-xl"></i><span>建立新分類</span>
-          </button>
         </div>
-        <div id="collections-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"></div>
-      </div>
+      </header>
 
-      <!-- 視圖：所有清單 -->
-      <div id="view-collections" class="space-y-6 fade-in hidden">
-        <div class="flex items-center gap-4">
-          <button onclick="switchTab('dashboard')" class="p-2 hover:bg-rose-100 text-rose-400 rounded-xl transition-colors">
-            <i class="ph ph-caret-left text-2xl"></i>
-          </button>
-          <h1 id="current-collection-title" class="text-2xl font-bold text-slate-800">所有項目</h1>
+      <div class="p-8 max-w-7xl mx-auto w-full pb-24">
+        <!-- 視圖：控制面板 -->
+        <div id="view-dashboard" class="space-y-8 fade-in block">
+          <div class="flex items-end justify-between">
+            <div>
+              <h1 class="text-3xl font-bold text-rose-950">美好生活收集冊 🌸</h1>
+              <p class="text-rose-600/70 mt-2">目前您擁有 <span id="col-count" class="font-bold">0</span> 個分類，共紀錄了 <span id="item-count" class="font-bold">0</span> 件美好的事物。</p>
+            </div>
+            <button onclick="openModal('collection-modal')" class="bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-semibold shadow-lg shadow-rose-200 transition-all active:scale-95 shrink-0">
+              <i class="ph ph-plus text-xl"></i><span class="hidden sm:inline">建立新分類</span>
+            </button>
+          </div>
+          <div id="collections-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"></div>
         </div>
-        <div id="items-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-      </div>
 
-    </div>
-  </main>
+        <!-- 視圖：所有清單 -->
+        <div id="view-collections" class="space-y-6 fade-in hidden">
+          <div class="flex items-center gap-4">
+            <button onclick="switchTab('dashboard')" class="p-2 hover:bg-rose-100 text-rose-400 rounded-xl transition-colors">
+              <i class="ph ph-caret-left text-2xl"></i>
+            </button>
+            <h1 id="current-collection-title" class="text-2xl font-bold text-slate-800">所有項目</h1>
+          </div>
+          <div id="items-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        </div>
+      </div>
+    </main>
   </div>
 
   <!-- ==================== 登入覆蓋層 ==================== -->
-  <div id="login-overlay" class="fixed inset-0 z-[100] bg-[#FFF9F9] flex flex-col items-center justify-center fade-in">
+  <div id="login-overlay" class="fixed inset-0 z-[100] bg-[#FFF9F9] flex-col items-center justify-center fade-in hidden">
     <div class="bg-white p-10 rounded-3xl shadow-xl text-center max-w-md w-full mx-4 border border-rose-50">
       <div class="w-16 h-16 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-500 mx-auto mb-6">
          <i class="ph ph-sparkle text-3xl"></i>
       </div>
       <h1 class="text-3xl font-bold text-rose-950 mb-4">登入收集冊</h1>
       <p class="text-slate-500 mb-8">請先登入以查看您的專屬選物</p>
-      <button id="login-btn" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-2xl transition-all shadow-lg shadow-rose-200 flex items-center justify-center gap-2">
+      <button id="login-btn" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-2xl transition-all shadow-lg shadow-rose-200 flex items-center justify-center gap-2 mb-3">
         <i class="ph ph-google-logo text-xl"></i>使用 Google 帳號登入
+      </button>
+      <button id="guest-btn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 px-6 rounded-2xl transition-all flex items-center justify-center gap-2">
+        <i class="ph ph-user text-xl"></i>使用訪客模式進入
       </button>
     </div>
   </div>
@@ -138,16 +148,12 @@
     <div class="absolute inset-0 bg-slate-900/20 backdrop-blur-sm" onclick="closeModal('item-modal')"></div>
     <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl relative fade-in p-8 space-y-4 max-h-[85vh] overflow-y-auto">
       <h2 class="text-xl font-bold text-slate-800">加入新事物 ✨</h2>
-      
-      <input type="text" id="new-item-name" class="w-full bg-rose-50/50 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-400" placeholder="物品名稱">
-      
+      <input type="text" id="new-item-name" class="w-full bg-rose-50/50 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-400" placeholder="物品名稱 (必填)">
       <div class="grid grid-cols-2 gap-4">
         <select id="new-item-col-id" class="w-full bg-rose-50/50 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-400"></select>
         <input type="text" id="new-item-price" class="w-full bg-rose-50/50 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-400" placeholder="價格 NT$">
       </div>
-      
       <input type="text" id="new-item-tags" class="w-full bg-rose-50/50 border border-rose-100 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-400" placeholder="標籤 (用逗號分隔，例如: 彩虹, 限定)">
-      
       <div class="pt-2 border-t border-rose-50">
         <label class="text-sm font-semibold text-slate-700 block mb-2">上傳照片 (限 500KB 以內)</label>
         <input type="file" id="new-item-image" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-600 hover:file:bg-rose-100 cursor-pointer">
@@ -155,7 +161,6 @@
           <img id="image-preview" src="" class="hidden h-36 w-36 object-cover rounded-2xl shadow-md border border-rose-100">
         </div>
       </div>
-      
       <div class="pt-4 flex gap-3">
         <button onclick="closeModal('item-modal')" class="flex-1 px-6 py-3 border border-rose-200 text-rose-500 rounded-2xl font-semibold hover:bg-rose-50">取消</button>
         <button id="save-item-btn" class="flex-1 px-6 py-3 bg-rose-500 text-white rounded-2xl font-semibold hover:bg-rose-600 shadow-lg shadow-rose-200">確認儲存</button>
@@ -169,18 +174,34 @@
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+    // ----------------- [自訂提示功能] -----------------
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-2xl shadow-xl z-[200] fade-in';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
     // ----------------- [1. 初始設定與 DOM 綁定] -----------------
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-        apiKey: "AIzaSyCH4HU68vK-79PhmnVCEpoQlxYeYr4YY7Y",
-        authDomain: "collect-28921.firebaseapp.com",
-        projectId: "collect-28921",
-        storageBucket: "collect-28921.firebasestorage.app",
-        messagingSenderId: "697671675107",
-        appId: "1:697671675107:web:b617568aa1309eff8069d6",
-    };
+    let firebaseConfigObj;
+    try {
+        firebaseConfigObj = typeof __firebase_config !== 'undefined' && typeof __firebase_config === 'string' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "AIzaSyCH4HU68vK-79PhmnVCEpoQlxYeYr4YY7Y",
+                authDomain: "collect-28921.firebaseapp.com",
+                projectId: "collect-28921",
+                storageBucket: "collect-28921.firebasestorage.app",
+                messagingSenderId: "697671675107",
+                appId: "1:697671675107:web:b617568aa1309eff8069d6",
+              };
+    } catch (e) {
+        console.error("Config parse error", e);
+    }
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'collect-app';
 
-    const app = initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfigObj);
     const auth = getAuth(app);
     const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
@@ -191,6 +212,7 @@
     let currentCollectionFilter = null;
     let base64ImageString = '';
 
+    const loadingOverlay = document.getElementById('loading-overlay');
     const loginOverlay = document.getElementById('login-overlay');
     const appContainer = document.getElementById('app-container');
     const userNameDisplay = document.getElementById('user-name-display');
@@ -199,32 +221,53 @@
     const selectItemColId = document.getElementById('new-item-col-id');
 
     // ----------------- [2. 登入與權限管理] -----------------
+    // 智慧登入機制：優先尋找 Token，若無則自動啟動訪客模式 (繞過 Popup 限制)
     const initAuth = async () => {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-            try { await signInWithCustomToken(auth, __initial_auth_token); } 
-            catch (err) { console.error("Token login failed", err); }
+            try { 
+                await signInWithCustomToken(auth, __initial_auth_token); 
+            } catch (err) { 
+                await signInAnonymously(auth); 
+            }
+        } else {
+            await signInAnonymously(auth);
         }
     };
     initAuth();
 
     document.getElementById('login-btn').addEventListener('click', async () => {
         try { await signInWithPopup(auth, googleProvider); } 
-        catch (error) { alert("登入失敗，請重試。"); }
+        catch (error) { showToast("登入被中斷或失敗，您可以嘗試訪客模式。"); }
+    });
+
+    document.getElementById('guest-btn').addEventListener('click', async () => {
+        try { await signInAnonymously(auth); } 
+        catch (error) { showToast("訪客登入失敗！"); }
     });
 
     document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
 
     onAuthStateChanged(auth, (user) => {
+        loadingOverlay.classList.add('hidden'); // 關閉讀取畫面
+        
         if (user) {
             currentUserUid = user.uid;
-            userNameDisplay.textContent = user.displayName || '收藏家';
+            userNameDisplay.textContent = user.isAnonymous ? '訪客收藏家' : (user.displayName || '收藏家');
+            
+            // 隱藏登入畫面，顯示主程式
             loginOverlay.classList.add('hidden');
+            loginOverlay.classList.remove('flex');
             appContainer.classList.remove('hidden');
+            appContainer.classList.add('flex');
+            
             setupRealtimeListeners(user.uid);
         } else {
             currentUserUid = null;
-            loginOverlay.classList.remove('hidden');
+            // 隱藏主程式，顯示登入畫面
             appContainer.classList.add('hidden');
+            appContainer.classList.remove('flex');
+            loginOverlay.classList.remove('hidden');
+            loginOverlay.classList.add('flex');
         }
     });
 
@@ -254,9 +297,10 @@
     }
 
     document.getElementById('save-col-btn').addEventListener('click', async () => {
+        if (!currentUserUid) return;
         const name = document.getElementById('new-col-name').value.trim();
         const icon = document.getElementById('new-col-icon').value;
-        if (!name) return alert("請輸入分類名稱！");
+        if (!name) return showToast("請輸入分類名稱！");
 
         const btn = document.getElementById('save-col-btn');
         btn.disabled = true; btn.textContent = '處理中...';
@@ -267,7 +311,8 @@
             });
             closeModal('collection-modal');
             document.getElementById('new-col-name').value = '';
-        } catch (err) { alert('新增失敗'); } 
+            showToast("分類建立成功！");
+        } catch (err) { showToast('新增失敗：權限不足或連線異常'); } 
         finally { btn.disabled = false; btn.textContent = '建立'; }
     });
 
@@ -285,23 +330,24 @@
             };
             reader.readAsDataURL(file);
         } else if (file) {
-            alert("圖片檔案過大！請選擇小於 500KB 的圖片。");
+            showToast("圖片檔案過大！請選擇小於 500KB 的圖片。");
             e.target.value = '';
         }
     });
 
     document.getElementById('save-item-btn').addEventListener('click', async () => {
+        if (!currentUserUid) return;
         const name = document.getElementById('new-item-name').value.trim();
         const colId = document.getElementById('new-item-col-id').value;
         const price = document.getElementById('new-item-price').value.trim();
         const tagsStr = document.getElementById('new-item-tags').value.trim();
         
-        if (!name || !colId) return alert("物品名稱和所屬分類為必填！");
+        if (!name || !colId) return showToast("物品名稱和所屬分類為必填！");
 
         const btn = document.getElementById('save-item-btn');
         btn.disabled = true; btn.textContent = '處理中...';
 
-        // 預設圖片 (防呆)
+        // 預設圖片 (棉花糖)
         const defaultImage = 'https://image.pollinations.ai/prompt/pink_fluffy_cotton_candy_on_a_stick_dessert?width=400&height=400&nologo=true';
 
         try {
@@ -321,13 +367,25 @@
             imageInput.value = '';
             imagePreview.classList.add('hidden');
             base64ImageString = '';
-        } catch (err) { alert('儲存失敗'); } 
+            showToast("成功加入新事物！");
+        } catch (err) { showToast('儲存失敗：權限不足或連線異常'); } 
         finally { btn.disabled = false; btn.textContent = '確認儲存'; }
     });
 
     // ----------------- [4. UI 渲染與控制邏輯] -----------------
     function renderDashboard() {
         collectionsGrid.innerHTML = '';
+        
+        if (collectionsData.length === 0) {
+            collectionsGrid.innerHTML = `
+                <div class="col-span-full py-12 text-center text-slate-400 bg-rose-50/30 rounded-3xl border border-dashed border-rose-200">
+                    <i class="ph ph-folder-open text-4xl mb-2 text-rose-300"></i>
+                    <p>尚無分類，點擊右上角「建立新分類」開始您的收集之旅！</p>
+                </div>
+            `;
+            return;
+        }
+
         collectionsData.forEach(col => {
             const itemCount = itemsData.filter(item => item.collectionId === col.id).length;
             const card = document.createElement('div');
@@ -341,7 +399,7 @@
                     <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mb-4">
                         <i class="ph ${col.icon} text-2xl"></i>
                     </div>
-                    <h3 class="font-bold text-lg text-slate-800">${col.name}</h3>
+                    <h3 class="font-bold text-lg text-slate-800 truncate">${col.name}</h3>
                     <p class="text-sm text-rose-500 font-medium mt-1">${itemCount} 件商品</p>
                 </div>
             `;
@@ -352,6 +410,7 @@
     function renderItems() {
         itemsGrid.innerHTML = '';
         let filtered = itemsData;
+        
         if (currentCollectionFilter) {
             filtered = itemsData.filter(item => item.collectionId === currentCollectionFilter);
         }
@@ -364,6 +423,15 @@
             );
         }
 
+        if (collectionsData.length === 0 && !currentCollectionFilter) {
+            itemsGrid.innerHTML = `
+                 <div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-3xl border border-rose-100 shadow-sm">
+                    <p>請先在控制面板建立「分類資料夾」後，再來新增項目喔！</p>
+                </div>
+            `;
+            return;
+        }
+
         // 渲染新增按鈕卡片
         itemsGrid.innerHTML += `
             <button onclick="openModal('item-modal')" class="border-2 border-dashed border-rose-200 rounded-3xl p-8 text-rose-400 hover:bg-rose-50 transition-all flex flex-col items-center justify-center h-[280px] group">
@@ -374,7 +442,7 @@
             </button>
         `;
 
-        // 渲染物品卡片 (包含標籤)
+        // 渲染物品卡片
         filtered.forEach(item => {
             const tagsHTML = (item.tags || []).map(tag => 
                 `<span class="bg-white/90 backdrop-blur text-rose-600 font-medium text-[10px] px-2.5 py-1 rounded-full shadow-sm">#${tag}</span>`
@@ -383,7 +451,7 @@
             const card = document.createElement('div');
             card.className = "bg-white rounded-3xl border border-rose-100 shadow-sm overflow-hidden h-[280px] flex flex-col group cursor-pointer hover:shadow-lg transition-all";
             card.innerHTML = `
-                <div class="h-40 bg-rose-50 relative overflow-hidden">
+                <div class="h-40 bg-rose-50 relative overflow-hidden flex-shrink-0">
                     <img src="${item.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
                     <div class="absolute bottom-3 left-3 flex gap-1 flex-wrap z-10">
                         ${tagsHTML}
@@ -391,9 +459,9 @@
                 </div>
                 <div class="p-4 flex flex-col justify-between flex-1">
                     <h4 class="font-bold text-slate-800 truncate">${item.name}</h4>
-                    <div class="flex justify-between items-center mt-2 border-t border-rose-50 pt-2">
+                    <div class="flex justify-between items-center mt-2 border-t border-rose-50 pt-3">
                         <span class="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-md">${item.status}</span>
-                        <span class="font-bold text-rose-500">${item.price}</span>
+                        <span class="font-bold text-rose-500 text-sm truncate ml-2">${item.price}</span>
                     </div>
                 </div>
             `;
@@ -431,7 +499,7 @@
         
         if (tabId === 'dashboard') {
             currentCollectionFilter = null;
-            document.getElementById('search-input').value = ''; // 回到儀表板時清空搜尋
+            document.getElementById('search-input').value = ''; 
         } else if (tabId === 'collections' && !currentCollectionFilter) {
             document.getElementById('current-collection-title').textContent = '所有項目';
             renderItems();
@@ -455,7 +523,6 @@
         document.getElementById(id).classList.add('hidden');
         document.getElementById(id).classList.remove('flex');
         
-        // 關閉 Modal 時順便清空預覽圖
         if (id === 'item-modal') {
             document.getElementById('image-preview').classList.add('hidden');
             document.getElementById('new-item-image').value = '';
