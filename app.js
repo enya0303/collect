@@ -1,0 +1,232 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// Firebase 設定
+const firebaseConfig = {
+    apiKey: "AIzaSyCH4HU68vK-79PhmnVCEpoQlxYeYr4YY7Y",
+    authDomain: "collect-28921.firebaseapp.com",
+    projectId: "collect-28921",
+    storageBucket: "collect-28921.firebasestorage.app",
+    messagingSenderId: "697671675107",
+    appId: "1:697671675107:web:b617568aa1309eff8069d6",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// 狀態變數
+let currentUserUid = null;
+let collectionsData = [];
+let itemsData = [];
+let currentCollectionFilter = null;
+let base64ImageString = '';
+
+// DOM 元素
+const loginOverlay = document.getElementById('login-overlay');
+const appContainer = document.getElementById('app-container');
+const userNameDisplay = document.getElementById('user-name-display');
+const collectionsGrid = document.getElementById('collections-grid');
+const itemsGrid = document.getElementById('items-grid');
+const selectItemColId = document.getElementById('new-item-col-id');
+
+// ================= 1. 登入與權限 ================= //
+document.getElementById('login-btn').addEventListener('click', async () => {
+    try { await signInWithPopup(auth, googleProvider); } 
+    catch (error) { alert("登入失敗，請重試。"); }
+});
+
+document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUserUid = user.uid;
+        userNameDisplay.textContent = user.displayName || '收藏家';
+        loginOverlay.classList.add('hidden');
+        appContainer.classList.remove('hidden');
+        setupRealtimeListeners(user.uid);
+    } else {
+        currentUserUid = null;
+        loginOverlay.classList.remove('hidden');
+        appContainer.classList.add('hidden');
+    }
+});
+
+// ================= 2. 資料庫監聽與寫入 ================= //
+function setupRealtimeListeners(uid) {
+    const colsRef = collection(db, 'users', uid, 'collections');
+    const itemsRef = collection(db, 'users', uid, 'items');
+
+    onSnapshot(colsRef, (snapshot) => {
+        collectionsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        document.getElementById('col-count').textContent = collectionsData.length;
+        updateSelectOptions();
+        renderDashboard();
+    });
+
+    onSnapshot(itemsRef, (snapshot) => {
+        itemsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        document.getElementById('item-count').textContent = itemsData.length;
+        renderDashboard();
+        renderItems();
+    });
+}
+
+// 新增分類
+document.getElementById('save-col-btn').addEventListener('click', async () => {
+    const name = document.getElementById('new-col-name').value.trim();
+    const icon = document.getElementById('new-col-icon').value;
+    if (!name) return;
+
+    await addDoc(collection(db, 'users', currentUserUid, 'collections'), {
+        name, icon, color: 'bg-pink-400', createdAt: new Date().toISOString()
+    });
+    closeModal('collection-modal');
+    document.getElementById('new-col-name').value = '';
+});
+
+// 圖片 Base64 轉換
+const imageInput = document.getElementById('new-item-image');
+const imagePreview = document.getElementById('image-preview');
+imageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file && file.size <= 500 * 1024) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            base64ImageString = reader.result;
+            imagePreview.src = base64ImageString;
+            imagePreview.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    } else {
+        alert("圖片檔案過大！請選擇小於 500KB 的圖片。");
+        e.target.value = '';
+    }
+});
+
+// 新增物品
+document.getElementById('save-item-btn').addEventListener('click', async () => {
+    const name = document.getElementById('new-item-name').value.trim();
+    const colId = document.getElementById('new-item-col-id').value;
+    const price = document.getElementById('new-item-price').value.trim();
+    const tagsStr = document.getElementById('new-item-tags').value.trim();
+    
+    if (!name || !colId) return alert("名稱和分類為必填！");
+
+    const defaultImage = 'https://image.pollinations.ai/prompt/pink_fluffy_cotton_candy_on_a_stick_dessert?width=400&height=400&nologo=true';
+
+    await addDoc(collection(db, 'users', currentUserUid, 'items'), {
+        name, collectionId: colId, price: price || '未定價',
+        tags: tagsStr ? tagsStr.split(',').map(t => t.trim()) : ['新加入'],
+        image: base64ImageString || defaultImage,
+        status: '剛入庫', date: new Date().toISOString().split('T')[0]
+    });
+    
+    closeModal('item-modal');
+    document.getElementById('new-item-name').value = '';
+    imageInput.value = '';
+    imagePreview.classList.add('hidden');
+    base64ImageString = '';
+});
+
+// ================= 3. 畫面渲染與 UI 控制 ================= //
+function renderDashboard() {
+    collectionsGrid.innerHTML = '';
+    collectionsData.forEach(col => {
+        const itemCount = itemsData.filter(item => item.collectionId === col.id).length;
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-3xl border border-rose-100 shadow-sm hover:shadow-xl transition-all cursor-pointer p-6";
+        card.onclick = () => openCollection(col.id, col.name);
+        card.innerHTML = `
+            <i class="ph ${col.icon} text-4xl text-rose-400 mb-4 block"></i>
+            <h3 class="font-bold text-lg text-slate-800">${col.name}</h3>
+            <p class="text-sm text-rose-500 mt-2">${itemCount} 件商品</p>
+        `;
+        collectionsGrid.appendChild(card);
+    });
+}
+
+function renderItems() {
+    itemsGrid.innerHTML = '';
+    let filtered = itemsData;
+    if (currentCollectionFilter) {
+        filtered = itemsData.filter(item => item.collectionId === currentCollectionFilter);
+    }
+    
+    // 搜尋過濾
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    if (searchTerm) {
+        filtered = filtered.filter(item => item.name.toLowerCase().includes(searchTerm));
+    }
+
+    itemsGrid.innerHTML += `
+        <button onclick="openModal('item-modal')" class="border-2 border-dashed border-rose-200 rounded-3xl p-8 text-rose-400 hover:bg-rose-50 transition-all flex flex-col items-center justify-center h-[280px]">
+            <i class="ph ph-plus text-3xl mb-2"></i><span class="font-semibold">新增項目</span>
+        </button>
+    `;
+
+    filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-3xl border border-rose-100 shadow-sm overflow-hidden h-[280px] flex flex-col";
+        card.innerHTML = `
+            <div class="h-40 bg-rose-50"><img src="${item.image}" class="w-full h-full object-cover"></div>
+            <div class="p-4 flex flex-col justify-between flex-1">
+                <h4 class="font-bold text-slate-800 truncate">${item.name}</h4>
+                <div class="flex justify-between items-center mt-2">
+                    <span class="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded">${item.status}</span>
+                    <span class="font-bold text-rose-500">${item.price}</span>
+                </div>
+            </div>
+        `;
+        itemsGrid.appendChild(card);
+    });
+}
+
+function updateSelectOptions() {
+    selectItemColId.innerHTML = '<option value="" disabled selected>請選擇分類...</option>';
+    collectionsData.forEach(col => {
+        const option = document.createElement('option');
+        option.value = col.id;
+        option.textContent = col.name;
+        selectItemColId.appendChild(option);
+    });
+    if (currentCollectionFilter) selectItemColId.value = currentCollectionFilter;
+}
+
+document.getElementById('search-input').addEventListener('input', () => {
+    if (!document.getElementById('view-collections').classList.contains('hidden')) renderItems();
+    else switchTab('collections');
+});
+
+// 暴露給 HTML onClick 呼叫的 UI 函數
+window.switchTab = function(tabId) {
+    document.getElementById('view-dashboard').classList.add('hidden');
+    document.getElementById('view-collections').classList.add('hidden');
+    document.getElementById(`view-${tabId}`).classList.remove('hidden');
+    
+    if (tabId === 'dashboard') currentCollectionFilter = null;
+    else if (tabId === 'collections' && !currentCollectionFilter) {
+        document.getElementById('current-collection-title').textContent = '所有項目';
+        renderItems();
+    }
+};
+
+window.openCollection = function(colId, colName) {
+    currentCollectionFilter = colId;
+    document.getElementById('current-collection-title').textContent = colName;
+    updateSelectOptions();
+    switchTab('collections');
+    renderItems();
+};
+
+window.openModal = (id) => {
+    document.getElementById(id).classList.remove('hidden');
+    document.getElementById(id).classList.add('flex');
+};
+
+window.closeModal = (id) => {
+    document.getElementById(id).classList.add('hidden');
+    document.getElementById(id).classList.remove('flex');
+};
